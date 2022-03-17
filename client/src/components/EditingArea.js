@@ -1,5 +1,7 @@
-
 import React , {Component} from 'react';
+import {MakeTabAsSpaces,FormatDoc} from './Constants';
+import {useState,useEffect} from 'react';
+import {io} from 'socket.io-client'
 
 // export default function EditingArea() {
 //   return (
@@ -9,24 +11,54 @@ import React , {Component} from 'react';
 
 class EditingArea extends Component {
 
+    
     constructor(props) {
         super(props);
         this.state = {
             text_name : '',
- 
+            socket : null,
+            default : '',
+    
         }
     }
 
-    makeTabAsSpaces() {
-        const txt = document.getElementById('txtarea');
-        txt.addEventListener('keydown',function(e){
-            if(e.key=='Tab'){
-                document.execCommand("insertText", false, '\t');
-                e.preventDefault();
-            }
-        })
-    };
+    async socketConnect(){
+        var connectInterval;
 
+        this.socket = io("ws://localhost:3001");
+        this.socket.on('connect',()=>{
+            console.log("connected")
+        })
+        //socket.emit("message", 5, "6", { 7: Uint8Array.from([8]) });
+        // receive a message from the server
+
+        this.socket.on("server", (evt) => {
+            console.log(evt);
+            const message = JSON.parse(evt);
+                console.log(message);
+                if(message.msg === "saved" || message.msg === 'received'){
+                    this.setState({
+                        default : message.raw, // this.state.text_name
+                    })
+                }
+        });
+        
+
+        this.socket.disconnect = (e) =>{
+            connectInterval = setTimeout(this.check, 3000); 
+        }
+
+        this.ws.onerror = (err) => {
+            this.socket.disconnect();
+        };
+        
+    }
+    
+
+    check = async () => {
+        const { ws } = this.state;
+        if (!ws || ws.readyState == WebSocket.CLOSED) this.socketConnect(); //check if websocket instance is closed, if so call `connect` function.
+      };
 
     componentDidUpdate(){ 
     }
@@ -42,57 +74,53 @@ class EditingArea extends Component {
     }
 
     componentDidMount(){
-        this.makeTabAsSpaces();
+        MakeTabAsSpaces();
+        this.socketConnect();
     }    
 
     onInput = function(e){
-        // console.log(e.currentTarget.textContent);
-        // console.log(e.currentTarget)
+        if(this.socket.CLOSED){
+        }else{
+            const msg = {"msg" : "Sending from client","raw" : e.currentTarget.innerHTML}
+            this.socket.emit("message", JSON.stringify(msg));
+        }
+
+
+        console.log(e.currentTarget);
+        console.log(e.currentTarget.innerHTML);
+
     }
     
-    getSelection = function(e){
-        //console.log(e.currentTarget.textContent);
-        console.log(getSelectionText());
+
+    changeToBold = function(e){
+        FormatDoc('bold');
     }
 
     render() {
         return (
-            <div class="page">
-                <a onClick={formatDoc('bold')}>bold</a>
+            <div className="page">
+                <a onClick={this.changeToBold.bind(this)} href="#">Bold</a>
                 <div 
-                class="customtextarea"
+                 dangerouslySetInnerHTML={{__html: this.state.default}}
+                className="customtextarea"
                 contentEditable='true' 
                 id='txtarea'  
                 onChange={this.onChange.bind(this)} 
-                autoFocus 
+                autoFocus   
                 onInput={this.onInput.bind(this)}
-                onMouseUpCapture={this.getSelection.bind(this)}
-                onKeyDownCapture={this.getSelection.bind(this)}
+                // onMouseUpCapture={this.getSelection.bind(this)}
+                // onKeyDownCapture={this.getSelection.bind(this)}
                 ></div>
-{/*                 
-                <textarea name="text_name"  id='txtarea' onChange={this.onChange.bind(this)} autofocus>Some text...</textarea> */}
+             {/*<textarea name="text_name"  id='txtarea' onChange={this.onChange.bind(this)} autofocus>Some text...</textarea> */}
           </div>
         
         )
     }
 }
-function getSelectionText() {
-    var text = "";
-    if (window.getSelection) {
-        text = window.getSelection().toString();
-    } else if (document.selection && document.selection.type != "Control"){
-        text = document.selection.createRange().text;
-    }else{
-            alert('no')
-    }
-    return text;
-}
-
-function formatDoc(sCmd, sValue) {
-    var oDoc, sDefTxt;
-    console.log(sCmd);
-    document.execCommand(sCmd, false, sValue); 
-  }
 
   
 export default EditingArea
+
+/*
+<img class="intLink" title="Bold" onClick={this.changeToBold.bind(this)} src="data:image/gif;base64,R0lGODlhFgAWAID/AMDAwAAAACH5BAEAAAAALAAAAAAWABYAQAInhI+pa+H9mJy0LhdgtrxzDG5WGFVk6aXqyk6Y9kXvKKNuLbb6zgMFADs=" />
+*/
