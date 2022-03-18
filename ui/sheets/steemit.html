@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="utf-8">
+      <title>Utopian-io | How to create a Spreadsheet component using HTML and JavaScript</title>
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.35.1/handsontable.min.css" rel="stylesheet">
+
+      
+      <style>
+        @import "compass/css3";
+
+            .table-editable {
+              position: relative;
+            }
+              .glyphicon {
+                font-size: 20px;
+              
+            }
+
+            .table-remove {
+              color: #700;
+              cursor: pointer;
+
+            }
+
+            .table-up, .table-down {
+              color: #007;
+              cursor: pointer;
+
+            }
+
+            .table-add {
+              color: #070;
+              cursor: pointer;
+              position: absolute;
+              top: 8px;
+              right: 0;
+            }
+      </style>
+
+  </head>
+<body style="padding-top: 5rem;">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"/>
+
+    <script>
+      $(function(){
+        var TABLE = $("table");
+
+        $(".table-add").click(function() {
+          console.log('adding');
+
+          var clone = TABLE
+            .find("tr.hide")
+            .clone(true)
+            .removeClass("hide table-line");
+
+          TABLE.append(clone);
+        });
+
+        /*
+        $('#cells').on('click', function() {
+
+            if ($('#cells').is(':focus')) {
+                
+              alert('focused')
+            }
+          
+            /*if ($(document.activeElement).is('#cells')) {
+              alert('isActiveAlement')
+            }
+          
+            if($('#cells:focus').length) {
+              alert(':focus')
+            }
+          });
+          */
+        $(".table-remove").click(function() {
+          $(this)
+            .parents("tr")
+            .detach();
+        });
+
+        $(".table-up").click(function() {
+          var $row = $(this).parents("tr");
+          if ($row.index() === 1) return;
+          $row.prev().before($row.get(0));
+        });
+
+        $(".table-down").click(function() {
+          var $row = $(this).parents("tr");
+          $row.next().after($row.get(0));
+        });
+      })
+    </script>
+
+
+
+    <div class="container">
+    <h1>Spread document </h1>
+
+
+    <div id="table" class="table-editable">
+      <span class="table-add glyphicon glyphicon-plus" style="color:black"></span>
+      <table class="table">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+        </tr>
+        <tr>
+          <td id="a1" contenteditable="true">Name</td>
+          <td id="b1" contenteditable="true">Age</td>
+          <td id="c1" contenteditable="true">Contact</td>
+        </tr>
+        <!-- This is our clonable table line -->
+        <tr class="hide">
+            <td id="a2" contenteditable="true">Name</td>
+            <td id="b2" contenteditable="true">Age</td>
+            <td id="c2" contenteditable="true">Contact</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    $('table').on('mousedown', 'td', function (event) {
+        var $row = $(this).parents("tr");
+        var json = {
+            "col": $(this).index(),
+            "row" : $row,
+            "target" : event.target.textContent,
+            "targetId" : event.target.id,
+            "targetClass" : event.target.className,
+            "targetTag" : event.target.tagName,
+        };
+        console.log(json);
+        
+        $(event.target).closest('td').prop("contentEditable", true);
+      });
+  </script>
+
+
+</body>
+</html>
