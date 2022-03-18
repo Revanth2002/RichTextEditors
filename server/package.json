@@ -12,6 +12,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cookie": "^0.4.2",
+    "redis": "^4.0.4",
     "socket.io": "^4.4.1"
   },
   "devDependencies": {
